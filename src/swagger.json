@@ -1,0 +1,318 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WeekTasks API",
+    "version": "1.0.0",
+    "description": "API para gerenciamento de tarefas e autenticação"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "descriotion": "Servidor Local"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Registrar um novo usuário",
+        "description": "Cria uma conta para um novo usuário.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "João da Silva"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "joao@email.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "minhaSenha123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário registrado com sucesso"
+          },
+          "500": {
+            "description": "Erro ao criar usuário"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Autenticar um usuário",
+        "description": "Realiza login e retorna um token JWT.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "joao@email.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "minhaSenha123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsIn..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          },
+          "500": {
+            "description": "Erro no login"
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "post": {
+        "summary": "Criar uma nova tarefa",
+        "description": "Cria uma nova tarefa associada ao usuário autenticado.",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Fazer compras"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Comprar frutas e legumes"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pendente",
+                      "em progresso",
+                      "concluído"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tarefa criada com sucesso"
+          },
+          "500": {
+            "description": "Erro ao criar tarefa"
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar todas as tarefas do usuário",
+        "description": "Retorna todas as tarefas associadas ao usuário autenticado.",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tarefas obtida com sucesso"
+          },
+          "500": {
+            "description": "Erro ao buscar tarefas"
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "put": {
+        "summary": "Atualizar uma tarefa",
+        "description": "Atualiza os dados de uma tarefa existente, desde que pertença ao usuário autenticado.",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "ID da tarefa a ser atualizada",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Nova tarefa"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Descrição da tarefa atualizada"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pendente",
+                      "em progresso",
+                      "concluído"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tarefa atualizada com sucesso"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          },
+          "500": {
+            "description": "Erro ao atualizar tarefa"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Excluir uma tarefa",
+        "description": "Remove uma tarefa específica do usuário autenticado.",
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "ID da tarefa a ser excluída",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarefa removida com sucesso"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          },
+          "500": {
+            "description": "Erro ao excluir tarefa"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Endpoints de Autenticação"
+    },
+    {
+      "name": "Tasks",
+      "description": "Gerenciamento de Tarefas"
+    }
+  ]
+}
