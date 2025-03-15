@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: weektasks_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: weektasks
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: .
+    container_name: weektasks_backend
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_NAME: weektasks
+      DB_USER: admin
+      DB_PASS: admin
+      JWT_SECRET: 85861495a123722a1b0efe7f49feb4f56f150ec44931fccdb8b652bb3e188f710b09e4babb09387473e40b533e67a0f8cf06233e3954b5bdbd04c13970c0a680
+      JWT_EXPIRES: 1h
+    volumes:
+      - .:/app
+    command: ["node", "server.js"]
+
+  frontend:
+    build: ../weektasks-frontend
+    container_name: weektasks_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:
+
+
+
