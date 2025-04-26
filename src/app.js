@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/taskRoutes");
+const { logRequests, logErrors } = require("./middlewares/logMiddleware");
 
 dotenv.config();
 
@@ -13,6 +14,9 @@ const setupSwagger = require("./swagger");
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+app.use(logRequests);
+app.use(logErrors);
+
 app.use("/auth", authRoutes);
 app.use("/tasks", taskRoutes);
 
@@ -23,5 +27,3 @@ app.get("/", (req, res) => {
 setupSwagger(app);
 
 module.exports = app;
-
-

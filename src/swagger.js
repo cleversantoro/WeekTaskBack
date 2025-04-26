@@ -13,7 +13,7 @@ const options = {
         servers: [
             { 
                 url: "http://localhost:3000", 
-                descriotion: "Servidor Local"
+                description: "Servidor Local"
             }
         ],
         components: {
@@ -33,14 +33,14 @@ const options = {
 const specs = swaggerJsdoc(options);
 
 // Salvar JSON para importar no Postman
-fs.writeFileSync("./src/swagger.json", JSON.stringify(specs, null, 2));
+fs.writeFileSync("./src/weektasks.json", JSON.stringify(specs, null, 2));
 
 
 module.exports = (app) => {
-    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+    app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
     // Rota para baixar o JSON do Swagger
-    app.get("/swagger.json", (req, res) => {
-        res.sendFile(__dirname + "/swagger.json");
+    app.get("/weektasks.json", (req, res) => {
+        res.sendFile(__dirname + "/weektasks.json");
     });    
 };

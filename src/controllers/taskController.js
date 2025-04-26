@@ -1,46 +1,6 @@
 const Task = require("../models/Task");
+const transporter = require("../config/mail");
 
-/**
- * @swagger
- * tags:
- *   name: Tasks
- *   description: Gerenciamento de Tarefas
- */
-
-
-/**
- * @swagger
- * /tasks:
- *   post:
- *     summary: Criar uma nova tarefa
- *     description: Cria uma nova tarefa associada ao usuário autenticado.
- *     tags: [Tasks]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *             properties:
- *               title:
- *                 type: string
- *                 example: "Fazer compras"
- *               description:
- *                 type: string
- *                 example: "Comprar frutas e legumes"
- *               status:
- *                 type: string
- *                 enum: [pendente, em progresso, concluído]
- *     responses:
- *       201:
- *         description: Tarefa criada com sucesso
- *       500:
- *         description: Erro ao criar tarefa
- */
 exports.createTask = async (req, res) => {
     try {
         const { title, description, status } = req.body;
@@ -51,21 +11,6 @@ exports.createTask = async (req, res) => {
     }
 };
 
-/**
- * @swagger
- * /tasks:
- *   get:
- *     summary: Listar todas as tarefas do usuário
- *     description: Retorna todas as tarefas associadas ao usuário autenticado.
- *     tags: [Tasks]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de tarefas obtida com sucesso
- *       500:
- *         description: Erro ao buscar tarefas
- */
 exports.getTasks = async (req, res) => {
     try {
         const tasks = await Task.findAll({ where: { userId: req.user.id } });
@@ -75,46 +20,6 @@ exports.getTasks = async (req, res) => {
     }
 };
 
-/**
- * @swagger
- * /tasks/{id}:
- *   put:
- *     summary: Atualizar uma tarefa
- *     description: Atualiza os dados de uma tarefa existente, desde que pertença ao usuário autenticado.
- *     tags: [Tasks]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID da tarefa a ser atualizada
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *                 example: "Nova tarefa"
- *               description:
- *                 type: string
- *                 example: "Descrição da tarefa atualizada"
- *               status:
- *                 type: string
- *                 enum: [pendente, em progresso, concluído]
- *     responses:
- *       200:
- *         description: Tarefa atualizada com sucesso
- *       404:
- *         description: Tarefa não encontrada
- *       500:
- *         description: Erro ao atualizar tarefa
- */
 exports.updateTask = async (req, res) => {
     try {
         const { id } = req.params;
@@ -130,30 +35,6 @@ exports.updateTask = async (req, res) => {
     }
 };
 
-/**
- * @swagger
- * /tasks/{id}:
- *   delete:
- *     summary: Excluir uma tarefa
- *     description: Remove uma tarefa específica do usuário autenticado.
- *     tags: [Tasks]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID da tarefa a ser excluída
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Tarefa removida com sucesso
- *       404:
- *         description: Tarefa não encontrada
- *       500:
- *         description: Erro ao excluir tarefa
- */
 exports.deleteTask = async (req, res) => {
     try {
         const { id } = req.params;
@@ -165,5 +46,36 @@ exports.deleteTask = async (req, res) => {
         res.json({ message: "Tarefa removida com sucesso" });
     } catch (error) {
         res.status(500).json({ error: "Erro ao excluir tarefa" });
+    }
+};
+
+exports.completeTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const task = await Task.findByPk(id);
+
+        if (!task) {
+            return res.status(404).json({ message: "Tarefa não encontrada" });
+        }
+
+        task.status = "concluído";
+        await task.save();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: "cleversantoro@gmail.com", // Aqui você pode substituir pelo email do usuário autenticado
+            subject: "Tarefa Concluída!",
+            text: `Parabéns! Sua tarefa "${task.title}" foi concluída! 🎉`,
+        };
+
+        transporter.sendMail(mailOptions, (error) => {
+            if (error) {
+                console.error("Erro ao enviar email:", error);
+            }
+        });
+
+        res.json({ message: "Tarefa concluída e notificação enviada" });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao concluir tarefa" });
     }
 };
